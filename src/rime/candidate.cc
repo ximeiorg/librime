@@ -16,7 +16,11 @@ static an<Candidate> UnpackShadowCandidate(const an<Candidate>& cand) {
 // 对实现 genuine() 虚协议的装饰型包装继续解包（仅外层追加，逐层透传）。
 // 注意：Shadow/Uniquified 的单层解包语义保持原样，不递归展开，
 // 确保既有输入方案下 GetGenuineCandidate 的结果与历史行为完全一致。
+// 空候选按历史行为原样返回：无候选段（如非法编码）的 GetSelectedCandidate
+// 为 null，调用方依赖判空兜底，此处不得解引用。
 static an<Candidate> UnwrapGenuineProtocol(const an<Candidate>& cand) {
+  if (!cand)
+    return cand;
   auto result = cand;
   while (auto wrapped = result->genuine()) {
     result = wrapped;

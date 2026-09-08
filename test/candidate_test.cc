@@ -74,4 +74,15 @@ TEST_F(CandidateGenuineTest, ShadowSemanticsUnchangedForOtherSchemas) {
   EXPECT_EQ(inner, Candidate::GetGenuineCandidate(outer));
 }
 
+TEST_F(CandidateGenuineTest, NullCandidateToleratedLikeLegacy) {
+  // 回归锚点（真机崩溃：无候选段输入 vii/vvv 触发 SIGSEGV）：历史上
+  // GetGenuineCandidate 对空候选原样返回、不崩溃，调用方（引擎、Lua 绑定、
+  // 万象等方案脚本）依赖判空兜底。genuine 协议解包必须保持这一行为。
+  an<Candidate> nil;
+  EXPECT_EQ(nullptr, Candidate::GetGenuineCandidate(nil).get());
+  auto genuines = Candidate::GetGenuineCandidates(nil);
+  ASSERT_EQ(1u, genuines.size());
+  EXPECT_EQ(nullptr, genuines.front().get());
+}
+
 }  // namespace
