@@ -216,9 +216,15 @@ bool LevelDb::Restore(const path& snapshot_file) {
 }
 
 bool LevelDb::Recover() {
+  if (!corrupted_) {
+    LOG(WARNING) << "not repairing db '" << name()
+                 << "': not corrupted (possibly held by another instance).";
+    return false;
+  }
   LOG(INFO) << "trying to recover db '" << name() << "'.";
   auto status = leveldb::RepairDB(file_path().string(), leveldb::Options());
   if (status.ok()) {
+    corrupted_ = false;
     LOG(INFO) << "repair finished.";
     return true;
   }
@@ -246,6 +252,7 @@ bool LevelDb::Open() {
   readonly_ = false;
   auto status = db_->Open(file_path(), readonly_);
   loaded_ = status.ok();
+  corrupted_ = status.IsCorruption();
 
   if (loaded_) {
     string db_name;
@@ -268,6 +275,7 @@ bool LevelDb::OpenReadOnly() {
   readonly_ = true;
   auto status = db_->Open(file_path(), readonly_);
   loaded_ = status.ok();
+  corrupted_ = status.IsCorruption();
 
   if (!loaded_) {
     LOG(ERROR) << "Error opening db '" << name() << "' read-only.";

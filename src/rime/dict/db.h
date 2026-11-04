@@ -89,6 +89,9 @@ class Recoverable {
  public:
   virtual ~Recoverable() = default;
   virtual bool Recover() = 0;
+  // true only when the last Open() failed on real corruption; a db held by
+  // another instance (lock error) must never be repaired.
+  virtual bool corrupted() const = 0;
 };
 
 class ResourceResolver;

@@ -60,6 +60,7 @@ class LevelDb : public Db, public Recoverable, public Transactional {
 
   // Recoverable
   bool Recover() override;
+  bool corrupted() const override { return corrupted_; }
 
   // Transactional
   bool BeginTransaction() override;
@@ -71,6 +72,7 @@ class LevelDb : public Db, public Recoverable, public Transactional {
 
   the<LevelDbWrapper> db_;
   string db_type_;
+  bool corrupted_ = false;
 };
 
 }  // namespace rime

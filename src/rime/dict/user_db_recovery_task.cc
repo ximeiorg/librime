@@ -34,7 +34,11 @@ bool UserDbRecoveryTask::Run(Deployer* deployer) {
     return false;
   }
   auto r = As<Recoverable>(db_);
-  if (r && r->Recover()) {
+  if (!r || !r->corrupted()) {
+    LOG(WARNING) << "db '" << db_->name() << "' not corrupted, skip recovery.";
+    return false;
+  }
+  if (r->Recover()) {
     return true;
   }
   // repair didn't work on the damaged db file; remove and recreate it
